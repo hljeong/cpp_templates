@@ -216,7 +216,8 @@ int main() {
 
   /*
    * todo: this doesnt work since the ternary evaluates the false branch
-   * regardless of condition, which sends the compiler into an infinite loop
+   * regardless of condition, which makes the compiler try to evaluate
+   * MakeNatural<static_cast<uint>(-1)>
    */
   // MakeInteger<1>();
 
