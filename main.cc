@@ -86,25 +86,11 @@ template <typename T, typename U> struct Union {};
 template <typename... Ts, typename... Us>
 struct Union<Set<Ts...>, Set<Us...>> : Set<Ts..., Us...> {};
 
-// using Zero = Set<>;
-
-template <typename T> struct Natural {};
-
-using NaturalZero = Natural<Set<>>;
-
-// template <typename T> using Natural = typename Natural_t<T>::value;
-
-template <typename T> struct Successor_t {};
-
-template <typename T> using Successor = typename Successor_t<T>::value;
-
-template <typename T> struct Successor_t<Natural<T>> {
-  using value = Natural<Union<T, Set<T>>>;
-};
+using N0 = Set<>;
 
 template <typename T> using S = Union<T, Set<T>>;
 
-template <uint N> using MakeNatural = ApplyNTimes<S, N, NaturalZero>;
+template <uint V> using N = ApplyNTimes<S, V, N0>;
 
 template <typename T, typename U> struct Add_t {};
 
@@ -114,7 +100,7 @@ template <typename T, typename U> struct Add_t<T, S<U>> {
   using value = Add<S<T>, U>;
 };
 
-template <typename T> struct Add_t<T, NaturalZero> {
+template <typename T> struct Add_t<T, N0> {
   using value = T;
 };
 
@@ -127,16 +113,15 @@ template <typename T, typename U> struct Multiply_t<T, S<U>> {
   using value = Add<Multiply<T, U>, T>;
 };
 
-template <typename T> struct Multiply_t<T, NaturalZero> {
-  using value = NaturalZero;
+template <typename T> struct Multiply_t<T, N0> {
+  using value = N0;
 };
 
 template <typename T, typename U> struct Integer {};
 
 template <int Z>
 using MakeInteger =
-    Ternary<MakeBool<Z >= 0>, Integer<MakeNatural<Z>, NaturalZero>,
-            Integer<NaturalZero, MakeNatural<-Z>>>;
+    Ternary<MakeBool<Z >= 0>, Integer<N<Z>, N0>, Integer<N0, N<-Z>>>;
 
 template <typename T, typename U, typename V, typename W>
 struct Equal_t<Integer<T, U>, Integer<V, W>> {
@@ -166,7 +151,7 @@ struct Subtract_t<Integer<T, U>, Integer<V, W>> {
   using value = Add<Integer<T, U>, Negative<Integer<V, W>>>;
 };
 
-template <typename T> struct Subtract_t<T, NaturalZero> {
+template <typename T> struct Subtract_t<T, N0> {
   using value = T;
 };
 
@@ -189,11 +174,11 @@ int main() {
 
   static_assert(In<Unit, List<Unit>>::value);
 
-  static_assert(Equal<S<NaturalZero>, S<NaturalZero>>::value);
+  static_assert(Equal<S<N0>, S<N0>>::value);
 
-  static_assert(Equal<NaturalZero, NaturalZero>::value);
+  static_assert(Equal<N0, N0>::value);
 
-  static_assert(Equal<ApplyNTimes<S, 0, NaturalZero>, NaturalZero>::value);
+  static_assert(Equal<ApplyNTimes<S, 0, N0>, N0>::value);
 
   static_assert(Equal<Set<>, Set<>>::value);
 
@@ -202,25 +187,25 @@ int main() {
   // todo:
   // static_assert(Equal<Set<Unit>, Set<Unit, Unit>>::value);
 
-  static_assert(Equal<ApplyNTimes<S, 1, NaturalZero>, S<NaturalZero>>::value);
+  static_assert(Equal<ApplyNTimes<S, 1, N0>, S<N0>>::value);
 
-  static_assert(Equal<NaturalZero, MakeNatural<0>>::value);
+  static_assert(Equal<N0, N<0>>::value);
 
-  static_assert(
-      Equal<Add<MakeNatural<3>, MakeNatural<5>>, MakeNatural<8>>::value);
+  static_assert(Equal<Add<N<3>, N<5>>, N<8>>::value);
 
-  static_assert(
-      Equal<Multiply<MakeNatural<3>, MakeNatural<5>>, MakeNatural<15>>::value);
+  static_assert(Equal<Multiply<N<3>, N<5>>, N<15>>::value);
 
   MakeInteger<0>();
 
   /*
    * todo: this doesnt work since the ternary evaluates the false branch
    * regardless of condition, which makes the compiler try to evaluate
-   * MakeNatural<static_cast<uint>(-1)>
+   * N<static_cast<uint>(-1)>
    */
   // MakeInteger<1>();
 
   // static_assert(Equal < MakeInteger<-3>,
   //               Subtract<MakeInteger<7>, MakeInteger<10>>::value);
+
+  return 0;
 }
